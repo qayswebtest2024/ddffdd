@@ -213,7 +213,7 @@
                     <div class="overflow-x-auto">
                         <table class="min-w-full table-auto">
                             <thead class="bg-gray-50 text-gray-600 text-sm">
-                                <tr><th class="px-4 py-3 text-right">الاسم</th><th class="px-4 py-3 text-right">الوحدة</th><th class="px-4 py-3 text-right">السعر</th><th class="px-4 py-3 text-right">الضريبة</th><th class="px-4 py-3 text-center">الإجراء</th></tr>
+                                <tr><th class="px-4 py-3 text-right">الاسم</th><th class="px-4 py-3 text-right">الوحدة</th><th class="px-4 py-3 text-right">المجموعة</th><th class="px-4 py-3 text-right">السعر</th><th class="px-4 py-3 text-right">الضريبة</th><th class="px-4 py-3 text-right">الترتيب</th><th class="px-4 py-3 text-center">الإجراء</th></tr>
                             </thead>
                             <tbody id="admin-products-tbody" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -252,28 +252,17 @@
                     <h3 class="text-2xl font-bold text-gray-800">الطلبات المستلمة للتحضير</h3>
                     <p class="text-gray-500 mt-1">تعديل سريع على الأصناف المرسلة بدون إعادة كتابة الطلبية كاملة</p>
                 </div>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <button onclick="exportFilteredOrders('preparer')" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow text-sm">تصدير النتائج</button>
-                </div>
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1">من تاريخ</label>
-                        <input type="date" id="preparer-filter-from" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1">إلى تاريخ</label>
-                        <input type="date" id="preparer-filter-to" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">الفرع</label>
-                        <select id="preparer-filter-branch" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                        <select id="preparer-filter-branch" onchange="applyOrderFilters('preparer')" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">الحالة</label>
-                        <select id="preparer-filter-status" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="preparer-filter-status" onchange="applyOrderFilters('preparer')" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             <option value="">كل الحالات</option>
                             <option value="submitted">جديد</option>
                             <option value="processing">قيد التحضير</option>
@@ -281,21 +270,18 @@
                             <option value="delivered">تم التسليم</option>
                         </select>
                     </div>
-                    <button onclick="applyOrderFilters('preparer')" class="self-end bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-sm">تطبيق الفلتر</button>
-                    <button onclick="resetOrderFilters('preparer')" class="self-end bg-gray-100 text-gray-800 px-4 py-3 rounded-xl font-bold hover:bg-gray-200 transition shadow-sm">إلغاء الفلتر</button>
                 </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto">
+                <div class="overflow-x-hidden md:overflow-x-auto">
+                    <table class="min-w-full table-fixed md:table-auto">
                         <thead class="bg-gray-100 text-gray-700 text-sm">
                             <tr>
-                                <th class="px-4 py-3 text-right">الفرع</th>
-                                <th class="px-4 py-3 text-right">الوقت</th>
-                                <th class="px-4 py-3 text-right">الأصناف</th>
-                                <th class="px-4 py-3 text-right">الإجمالي</th>
-                                <th class="px-4 py-3 text-center">الإجراءات</th>
+                                <th class="px-4 py-3 text-right w-1/4">الفرع</th>
+                                <th class="px-4 py-3 text-right w-1/5">الوقت</th>
+                                <th class="px-4 py-3 text-right w-1/5">الأصناف</th>
+                                <th class="px-4 py-3 text-center w-2/5">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="preparer-orders-tbody" class="divide-y divide-gray-100"></tbody>
@@ -355,7 +341,8 @@
             },
             ordersUnsubscribe: null,
             activeView: 'login',
-            currentRole: null
+            currentRole: null,
+            supervisorExpandedGroups: {}
         };
 
         const getEl = (id) => document.getElementById(id);
@@ -441,10 +428,10 @@
 
         function normalizeProduct(product = {}, index = 0) {
             const name = safeText(product.name, 'صنف غير محدد');
-            const unit = safeText(product.unit || product.category, 'حبة');
+            const unit = safeText(product.unit || product.category || product.group || product.section, 'حبة');
+            const category = safeText(product.category || product.group || product.section || product.department || unit, 'أصناف عامة');
             const price = safeNumber(product.price);
             const tax = safeNumber(product.tax);
-            const category = safeText(product.category, unit || 'أصناف عامة');
             const sortOrder = safeNumber(product.sortOrder, index + 1);
             const id = safeText(product.id, buildProductId({ name, unit, sortOrder }));
             return {
@@ -463,12 +450,13 @@
             const price = safeNumber(item.price);
             const quantity = safeQty(item.quantity);
             const tax = safeNumber(item.tax);
-            const unit = safeText(item.unit || item.category, '');
+            const unit = safeText(item.unit || item.category || item.group, '');
+            const category = safeText(item.category || item.group || unit, 'أصناف عامة');
             return {
                 id: safeText(item.id, buildProductId({ name: item.name, unit })),
                 name: safeText(item.name, 'صنف غير محدد'),
                 unit,
-                category: safeText(item.category || unit, 'أصناف عامة'),
+                category,
                 quantity,
                 price,
                 tax,
@@ -479,9 +467,15 @@
         function normalizeOrder(order = {}) {
             const sourceItems = Array.isArray(order.preparedItems) && order.preparedItems.length
                 ? order.preparedItems
-                : (Array.isArray(order.items) && order.items.length ? order.items : (Array.isArray(order.originalItems) ? order.originalItems : []));
+                : (Array.isArray(order.items) && order.items.length
+                    ? order.items
+                    : (Array.isArray(order.originalItems) ? order.originalItems : []));
 
             const items = sourceItems.map(normalizeItem);
+            const originalItems = Array.isArray(order.originalItems) && order.originalItems.length
+                ? order.originalItems.map(normalizeItem)
+                : items.map(normalizeItem);
+            const preparedItems = Array.isArray(order.preparedItems) ? order.preparedItems.map(normalizeItem) : [];
             const totalFromItems = items.reduce((sum, item) => sum + item.subtotal, 0);
             const total = safeNumber(order.total, totalFromItems);
             return {
@@ -489,8 +483,8 @@
                 id: order.id || '',
                 branch: safeText(order.branch, 'فرع غير محدد'),
                 items,
-                originalItems: Array.isArray(order.originalItems) ? order.originalItems.map(normalizeItem) : [],
-                preparedItems: Array.isArray(order.preparedItems) ? order.preparedItems.map(normalizeItem) : [],
+                originalItems,
+                preparedItems,
                 total,
                 note: safeText(order.note, ''),
                 special: Boolean(order.special),
@@ -511,33 +505,33 @@
             return items.reduce((sum, item) => sum + safeQty(item.quantity) * safeNumber(item.price) * (1 + safeNumber(item.tax) / 100), 0);
         }
 
-        function getSupervisorWhatsappText(items, branch, note, special) {
-            let text = `*📦 طلبية فرع: ${branch}*\n`;
-            text += `التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n`;
-            if (special) text += `*نوع الطلبية:* خاصة\n`;
-            if (note) text += `*ملاحظات:* ${note}\n`;
-            text += `\n`;
+        function buildWhatsAppText(order, mode = 'supervisor') {
+            const normalized = normalizeOrder(order);
+            const items = getFinalOrderItems(normalized);
+
+            const title = mode === 'preparer'
+                ? '*الطلبية المرسلة*'
+                : `*طلبية فرع: ${normalized.branch}*`;
+
+            const lines = [title, `الفرع: ${normalized.branch}`];
+            if (normalized.special) lines.push('نوع الطلبية: خاصة');
+            if (normalized.note) lines.push(`ملاحظات: ${normalized.note}`);
+
+            lines.push('');
             items.forEach(item => {
-                text += `▪️ ${item.name}${item.unit ? ` (${item.unit})` : ''}: *${item.quantity}*\n`;
+                const unitText = item.unit ? ` (${item.unit})` : '';
+                lines.push(`▪️ ${item.name}${unitText}: ${item.quantity}`);
             });
-            const total = calcOrderTotal(items);
-            text += `\n*الإجمالي المتوقع:* ${formatMoney(total)}`;
-            return text;
+
+            return lines.join('\n');
+        }
+
+        function getSupervisorWhatsappText(items, branch, note, special) {
+            return buildWhatsAppText({ branch, items, originalItems: items, preparedItems: [], note, special, status: 'submitted' }, 'supervisor');
         }
 
         function getWhatsappTextForOrder(order) {
-            const normalized = normalizeOrder(order);
-            let text = `*📦 طلبية فرع: ${normalized.branch}*\n`;
-            text += `التاريخ: ${formatDateTime(normalized.timestamp || normalized.preparedAt)}\n`;
-            text += `الحالة: ${getStatusLabel(normalized.status)}\n`;
-            if (normalized.special) text += `*نوع الطلبية:* خاصة\n`;
-            if (normalized.note) text += `*ملاحظات:* ${normalized.note}\n`;
-            text += `\n`;
-            getFinalOrderItems(normalized).forEach(item => {
-                text += `▪️ ${item.name}${item.unit ? ` (${item.unit})` : ''}: *${item.quantity}*\n`;
-            });
-            text += `\n*الإجمالي:* ${formatMoney(normalized.total)}`;
-            return text;
+            return buildWhatsAppText(order, 'supervisor');
         }
 
         function showView(viewId) {
@@ -605,8 +599,10 @@
                 .filter(order => {
                     const ymd = extractOrderYMD(order);
                     if (filters.branch && order.branch !== filters.branch) return false;
-                    if (filters.from && ymd && ymd < filters.from) return false;
-                    if (filters.to && ymd && ymd > filters.to) return false;
+                    if (source !== 'preparer') {
+                        if (filters.from && ymd && ymd < filters.from) return false;
+                        if (filters.to && ymd && ymd > filters.to) return false;
+                    }
                     if (source === 'preparer' && filters.status && order.status !== filters.status) return false;
                     return true;
                 })
@@ -632,7 +628,7 @@
                 const dateStr = formatDateTime(order.preparedAt || order.timestamp);
                 const noteBadge = order.note ? `<div class="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-1 inline-block mt-1" title="${escapeHtml(order.note)}">ملاحظة موجودة</div>` : '';
                 const specialBadge = order.special ? `<div class="text-xs text-red-700 bg-red-50 border border-red-100 rounded-full px-2 py-1 inline-block mt-1">خاصة</div>` : '';
-                const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(getWhatsappTextForOrder(order))}`;
+                const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(buildWhatsAppText(order, source === 'preparer' ? 'preparer' : 'supervisor'))}`;
                 const itemCount = getFinalOrderItems(order).length;
 
                 tbody.insertAdjacentHTML('beforeend', `
@@ -707,7 +703,7 @@
 
             const groups = {};
             products.forEach(p => {
-                const key = safeText(p.unit || p.category, 'أصناف عامة');
+                const key = safeText(p.category || p.unit, 'أصناف عامة');
                 groups[key] = groups[key] || [];
                 groups[key].push(p);
             });
@@ -717,7 +713,7 @@
                 .forEach(([groupName, groupProducts]) => {
                     const details = document.createElement('details');
                     details.className = "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-3";
-                    details.open = groupProducts.length <= 16;
+                    details.open = Boolean(state.supervisorExpandedGroups[groupName]);
                     details.innerHTML = `
                         <summary class="p-4 font-bold text-lg bg-gray-50 text-gray-800 flex justify-between items-center select-none mobile-touch-target">
                             ${escapeHtml(groupName)} <span class="text-sm font-normal bg-white px-3 py-1 rounded-full text-blue-700 shadow-sm border border-blue-100">${groupProducts.length}</span>
@@ -727,7 +723,7 @@
                                 <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm gap-3 ${safeQty(p.quantity) > 0 ? 'ring-1 ring-green-100 bg-green-50/30' : ''}">
                                     <div class="flex-1 min-w-0">
                                         <p class="font-bold text-base text-gray-800 truncate">${escapeHtml(p.name)}</p>
-                                        <p class="text-xs text-gray-500 mt-1">${escapeHtml(p.unit)} | ${formatMoney(p.price)}${safeNumber(p.tax) ? ` | ضريبة ${safeNumber(p.tax)}%` : ''}</p>
+                                        <p class="text-xs text-gray-500 mt-1">${escapeHtml(p.unit)}${safeNumber(p.tax) ? ` | ضريبة ${safeNumber(p.tax)}%` : ''}</p>
                                     </div>
                                     <div class="flex items-center space-x-2 space-x-reverse bg-gray-50 rounded-lg p-1 border border-gray-200">
                                         <button onclick="updateQty('${escapeJs(p.id)}', 1)" class="bg-blue-600 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-blue-700 shadow-sm">+</button>
@@ -738,6 +734,11 @@
                             `).join('')}
                         </div>
                     `;
+                    details.querySelector('summary').addEventListener('click', (event) => {
+                        event.preventDefault();
+                        state.supervisorExpandedGroups[groupName] = !state.supervisorExpandedGroups[groupName];
+                        details.open = state.supervisorExpandedGroups[groupName];
+                    });
                     container.appendChild(details);
                 });
 
@@ -786,6 +787,18 @@
         };
 
         window.filterSupervisorProducts = () => renderSupervisorProducts();
+        window.switchAdminTab = (tabId) => setActiveTab(tabId);
+        window.loadPreparerData = () => loadPreparerData();
+        window.loadAdminData = () => loadAdminData();
+        window.sendOrderToWhatsapp = (orderId, mode = 'preparer') => {
+            const order = (state.orders.all || []).find(o => o.id === orderId) || (state.orders.today || []).find(o => o.id === orderId) || (state.orders.archive || []).find(o => o.id === orderId);
+            if (!order) return Swal.fire('تنبيه', 'الطلبية غير موجودة', 'info');
+            const whatsappText = buildWhatsAppText(order, mode);
+            const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappText)}`;
+            window.open(waLink, '_blank');
+        };
+
+
 
         async function replaceProductsCollection(items) {
             const existing = await getDocs(collection(db, "products"));
@@ -919,7 +932,7 @@
 
                 await updateDoc(docRef, { orderNo: docRef.id });
 
-                const whatsappText = getSupervisorWhatsappText(items, branchName, note, special);
+                const whatsappText = buildWhatsAppText({ branch: branchName, items, originalItems: items, preparedItems: [], note, special, status: 'submitted' }, 'supervisor');
                 resetSupervisorForm();
 
                 Swal.fire({
@@ -960,7 +973,7 @@
                 state.adminProducts = rows;
 
                 if (!rows.length) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 font-bold">لا توجد منتجات حالياً</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 font-bold">لا توجد منتجات حالياً</td></tr>`;
                     return;
                 }
 
@@ -969,8 +982,10 @@
                         <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
                             <td class="px-4 py-3 font-bold text-gray-800">${escapeHtml(p.name)}</td>
                             <td class="px-4 py-3 text-gray-600">${escapeHtml(p.unit)}</td>
+                            <td class="px-4 py-3 text-gray-600">${escapeHtml(p.category)}</td>
                             <td class="px-4 py-3 text-blue-600 font-bold" dir="ltr">${formatMoney(p.price)}</td>
                             <td class="px-4 py-3 text-gray-600" dir="ltr">${safeNumber(p.tax)}%</td>
+                            <td class="px-4 py-3 text-gray-600" dir="ltr">${safeNumber(p.sortOrder)}</td>
                             <td class="px-4 py-3 text-center">
                                 <button onclick="editProduct('${escapeJs(p.id)}')" class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition">تعديل</button>
                                 <button onclick="deleteProduct('${escapeJs(p.id)}')" class="text-white bg-red-500 hover:bg-red-600 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition mr-1">حذف</button>
@@ -1038,25 +1053,26 @@
             tbody.innerHTML = '';
 
             if (!ordersArray.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 font-bold text-lg">لا يوجد طلبات للتحضير حالياً</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 font-bold text-lg">لا يوجد طلبات للتحضير حالياً</td></tr>`;
                 return;
             }
 
             ordersArray.forEach(order => {
                 const dateStr = formatDateTime(order.preparedAt || order.timestamp);
+                const items = getFinalOrderItems(order);
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-blue-50 transition border-b border-gray-100">
-                        <td class="px-4 py-4 text-right font-bold text-gray-800">
-                            <div>${escapeHtml(order.branch)}</div>
+                    <tr class="hover:bg-emerald-50 transition border-b border-gray-100">
+                        <td class="px-4 py-4 text-right font-bold text-gray-800 align-top break-words">
+                            <div class="whitespace-normal">${escapeHtml(order.branch)}</div>
                             <div class="mt-1 flex gap-2 flex-wrap">${getStatusBadge(order.status)}${order.special ? '<span class="text-xs font-bold px-2 py-1 rounded-full border bg-red-50 text-red-700 border-red-100">خاصة</span>' : ''}</div>
                         </td>
-                        <td class="px-4 py-4 text-right text-gray-500 text-sm" dir="ltr">${escapeHtml(dateStr)}</td>
-                        <td class="px-4 py-4 text-right text-gray-700 font-bold">${getFinalOrderItems(order).length} صنف</td>
-                        <td class="px-4 py-4 text-right font-bold text-green-600">${formatMoney(order.total)}</td>
-                        <td class="px-4 py-4 text-center">
-                            <div class="flex justify-center gap-2 flex-wrap">
-                                <button onclick="viewOrderDetails('${escapeJs(order.id)}', 'preparer')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg hover:bg-indigo-100 border border-indigo-100 transition shadow-sm">التفاصيل</button>
-                                <button onclick="openOrderEditor('${escapeJs(order.id)}')" class="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 border border-blue-100 transition shadow-sm">تحضير/تعديل</button>
+                        <td class="px-4 py-4 text-right text-gray-500 text-sm align-top break-words" dir="ltr">${escapeHtml(dateStr)}</td>
+                        <td class="px-4 py-4 text-right text-gray-700 font-bold align-top">${items.length} صنف</td>
+                        <td class="px-4 py-4 text-center align-top">
+                            <div class="flex flex-col sm:flex-row justify-center gap-2">
+                                <button onclick="viewOrderDetails('${escapeJs(order.id)}', 'preparer')" class="w-full sm:w-auto bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg hover:bg-indigo-100 border border-indigo-100 transition shadow-sm">التفاصيل</button>
+                                <button onclick="openOrderEditor('${escapeJs(order.id)}')" class="w-full sm:w-auto bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 border border-blue-100 transition shadow-sm">تحضير/تعديل</button>
+                                <button onclick="sendOrderToWhatsapp('${escapeJs(order.id)}', 'preparer')" class="w-full sm:w-auto bg-green-50 text-green-700 px-3 py-2 rounded-lg hover:bg-green-100 border border-green-100 transition shadow-sm">واتساب</button>
                             </div>
                         </td>
                     </tr>
@@ -1067,10 +1083,10 @@
         window.applyOrderFilters = (source) => {
             const prefix = source === 'today' ? 'today' : (source === 'archive' ? 'archive' : 'preparer');
             state.filters[source] = {
-                from: getEl(`${prefix}-filter-from`)?.value || '',
-                to: getEl(`${prefix}-filter-to`)?.value || '',
+                from: source === 'preparer' ? '' : (getEl(`${prefix}-filter-from`)?.value || ''),
+                to: source === 'preparer' ? '' : (getEl(`${prefix}-filter-to`)?.value || ''),
                 branch: getEl(`${prefix}-filter-branch`)?.value || '',
-                status: getEl(`${prefix}-filter-status`)?.value || ''
+                status: source === 'preparer' ? (getEl(`${prefix}-filter-status`)?.value || '') : ''
             };
             if (source === 'preparer') renderPreparerOrdersTable();
             else renderOrdersTable(`${source}-orders-tbody`, source);
@@ -1400,6 +1416,7 @@
 
             const normalized = normalizeOrder(order);
             const items = getFinalOrderItems(normalized);
+            const showMoney = source !== 'preparer';
 
             let itemsHtml = `
                 <div class="space-y-3 text-right">
@@ -1429,7 +1446,7 @@
                 itemsHtml += `<tr><td class="p-2 border font-bold text-gray-700">${escapeHtml(i.name)}</td><td class="p-2 border text-gray-600">${escapeHtml(i.unit)}</td><td class="p-2 border font-bold text-blue-600">${i.quantity}</td></tr>`;
             });
 
-            itemsHtml += `</table></div><div class="p-3 rounded-xl bg-green-50 border border-green-100 font-bold text-green-700">الإجمالي: ${formatMoney(normalized.total)}</div></div>`;
+            itemsHtml += `</table></div>${showMoney ? `<div class="p-3 rounded-xl bg-green-50 border border-green-100 font-bold text-green-700">الإجمالي: ${formatMoney(normalized.total)}</div>` : ''}</div>`;
 
             Swal.fire({
                 title: `طلبية فرع: ${escapeHtml(normalized.branch)}`,
@@ -1447,7 +1464,8 @@
         };
 
         window.adjustPrepQty = (id, delta) => {
-            const input = getEl(`prep-qty-${id}`);
+            const actualId = String(id || '').startsWith('prep-qty-') ? String(id) : `prep-qty-${id}`;
+            const input = getEl(actualId);
             if (!input) return;
             const next = Math.max(0, safeQty(input.value) + delta);
             input.value = String(next);
@@ -1458,19 +1476,17 @@
 
         function updatePrepDialogSummary() {
             const rows = document.querySelectorAll('[data-prep-row]');
-            let total = 0;
-            let count = 0;
+            let itemRows = 0;
+            let totalQty = 0;
             rows.forEach(row => {
                 const qty = safeQty(row.querySelector('input[type="number"]')?.value);
-                const price = safeNumber(row.dataset.price);
-                const tax = safeNumber(row.dataset.tax);
-                total += qty * price * (1 + tax / 100);
-                if (qty > 0) count += 1;
+                if (qty > 0) itemRows += 1;
+                totalQty += qty;
             });
-            const totalEl = getEl('prep-total-preview');
             const countEl = getEl('prep-count-preview');
-            if (totalEl) totalEl.innerText = formatMoney(total);
-            if (countEl) countEl.innerText = `${count} أصناف`;
+            const qtyEl = getEl('prep-qty-preview');
+            if (countEl) countEl.innerText = `${itemRows} أصناف`;
+            if (qtyEl) qtyEl.innerText = `${totalQty} قطعة`;
         }
 
         function buildAdjustments(originalItems, updatedItems) {
@@ -1529,9 +1545,9 @@
                                 <div class="text-xs text-blue-700">عدد الأصناف المعدلة</div>
                                 <div class="text-lg font-bold text-blue-900" id="prep-count-preview">0 أصناف</div>
                             </div>
-                            <div class="p-3 rounded-xl bg-green-50 border border-green-100">
-                                <div class="text-xs text-green-700">الإجمالي المتوقع</div>
-                                <div class="text-lg font-bold text-green-900" id="prep-total-preview">${formatMoney(calcOrderTotal(baseItems))}</div>
+                            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                                <div class="text-xs text-emerald-700">إجمالي الكميات</div>
+                                <div class="text-lg font-bold text-emerald-900" id="prep-qty-preview">0 قطعة</div>
                             </div>
                         </div>
                         <div class="max-h-[55vh] overflow-y-auto space-y-3 pr-1">
@@ -1619,6 +1635,10 @@
                             <label class="block text-sm font-bold text-gray-700 mb-1">الوحدة</label>
                             <input id="swal-unit" class="w-full border rounded-lg p-2" value="${escapeHtml(p.unit)}">
                         </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">المجموعة / التصنيف</label>
+                            <input id="swal-category" class="w-full border rounded-lg p-2" value="${escapeHtml(p.category || p.unit)}">
+                        </div>
                         <div class="flex gap-4">
                             <div class="w-1/2">
                                 <label class="block text-sm font-bold text-gray-700 mb-1">السعر (د.ا)</label>
@@ -1643,7 +1663,7 @@
                 preConfirm: () => ({
                     name: getEl('swal-name').value.trim(),
                     unit: getEl('swal-unit').value.trim() || 'حبة',
-                    category: getEl('swal-unit').value.trim() || 'حبة',
+                    category: getEl('swal-category').value.trim() || getEl('swal-unit').value.trim() || 'حبة',
                     price: safeNumber(getEl('swal-price').value),
                     tax: safeNumber(getEl('swal-tax').value),
                     sortOrder: safeNumber(getEl('swal-order').value)
@@ -1686,11 +1706,12 @@
 
                     const normalized = jsonData.map((item, index) => {
                         const name = safeText(item['الصنف'] || item['الاسم'] || item['name']);
-                        const unit = safeText(item['الوحدة'] || item['unit'] || item['التصنيف'] || '');
+                        const unit = safeText(item['الوحدة'] || item['unit'] || item['القياس'] || '');
+                        const category = safeText(item['المجموعة'] || item['الفئة'] || item['التصنيف'] || item['group'] || item['category'] || unit || 'أصناف عامة');
                         const price = safeNumber(item['السعر الافرادي'] ?? item['السعر'] ?? item['price'], NaN);
-                        const tax = safeNumber(item['الضريبة'] ?? item['tax'], 0);
-                        const sortOrder = index + 1;
-                        return { name, unit: unit || 'حبة', price, tax, sortOrder };
+                        const tax = safeNumber(item['الضريبة'] ?? item['tax'] ?? 0, 0);
+                        const sortOrder = safeNumber(item['الترتيب'] ?? item['order'] ?? item['sortOrder'], index + 1);
+                        return { name, unit: unit || 'حبة', category, price, tax, sortOrder };
                     }).filter(item => item.name && Number.isFinite(item.price));
 
                     if (!normalized.length) {
