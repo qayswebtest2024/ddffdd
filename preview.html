@@ -75,7 +75,11 @@
 
         </div>
 
-        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-15px_30px_rgba(0,0,0,0.08)] z-50 flex justify-center pb-safe">
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-15px_30px_rgba(0,0,0,0.08)] z-50 flex justify-center gap-3 pb-safe">
+            <button id="preview-order-btn" class="bg-indigo-600 text-white p-4 rounded-xl text-xl font-bold hover:bg-indigo-700 transition fast-click flex justify-center items-center gap-3 shadow-lg mobile-touch-target">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                <span>معاينة الطلبية</span>
+            </button>
             <button id="submit-order-btn" class="w-full max-w-3xl bg-green-600 text-white p-4 rounded-xl text-xl font-bold hover:bg-green-700 transition fast-click flex justify-center items-center gap-3 shadow-lg mobile-touch-target">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                 <span id="order-btn-text">إرسال الطلبية للرئيسي</span>
@@ -668,7 +672,7 @@
 
         function resetSupervisorForm() {
             state.masterProducts.forEach(p => p.quantity = 0);
-            document.querySelectorAll('[id^="qty-"]').forEach(el => el.innerText = '0');
+            document.querySelectorAll('[id^="qty-input-"]').forEach(el => el.value = '0');
             const note = getEl('order-note');
             const special = getEl('special-order');
             if (note) note.value = '';
@@ -681,6 +685,95 @@
             const totalQty = state.masterProducts.reduce((sum, p) => sum + safeQty(p.quantity), 0);
             const btnText = getEl('order-btn-text');
             if (btnText) btnText.innerText = totalQty > 0 ? `تأكيد وإرسال (${totalQty} صنف)` : `إرسال الطلبية للرئيسي`;
+        }
+
+        function updateProductQuantity(productId, newQty) {
+            const product = state.masterProducts.find(p => p.id === productId);
+            if (!product) return;
+            const qty = safeQty(newQty);
+            product.quantity = qty;
+            const inputEl = getEl(`qty-input-${productId}`);
+            if (inputEl && inputEl.value != qty) inputEl.value = qty;
+            updateSubmitButtonLabel();
+            // only re-render if needed for grouping, but keep performance
+            const activeSearch = getEl('product-search')?.value;
+            if (activeSearch && activeSearch.trim() !== '') {
+                renderSupervisorProducts();
+            } else {
+                // update just the displayed quantity in the DOM without full re-render
+                const displaySpan = getEl(`qty-display-${productId}`);
+                if (displaySpan) displaySpan.innerText = qty;
+            }
+        }
+
+        // New function to show order preview
+        function showOrderPreview() {
+            const itemsWithQty = state.masterProducts.filter(p => safeQty(p.quantity) > 0).map(p => ({
+                name: p.name,
+                unit: p.unit,
+                quantity: safeQty(p.quantity),
+                price: p.price,
+                tax: p.tax,
+                subtotal: safeQty(p.quantity) * p.price * (1 + p.tax / 100)
+            }));
+            if (itemsWithQty.length === 0) {
+                Swal.fire('تنبيه', 'لا توجد أصناف محددة في الطلبية. قم بإضافة كميات أولاً.', 'info');
+                return false;
+            }
+            const total = itemsWithQty.reduce((sum, i) => sum + i.subtotal, 0);
+            const note = getEl('order-note').value.trim();
+            const special = getEl('special-order').checked;
+
+            let html = `
+                <div style="text-align: right; max-height: 60vh; overflow-y: auto;">
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background:#f3f4f6;">
+                                <th style="padding:8px; border:1px solid #ddd;">الصنف</th>
+                                <th style="padding:8px; border:1px solid #ddd;">الوحدة</th>
+                                <th style="padding:8px; border:1px solid #ddd;">الكمية</th>
+                                <th style="padding:8px; border:1px solid #ddd;">السعر</th>
+                                <th style="padding:8px; border:1px solid #ddd;">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            itemsWithQty.forEach(item => {
+                html += `
+                    <tr>
+                        <td style="padding:6px; border:1px solid #ddd;">${escapeHtml(item.name)}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">${escapeHtml(item.unit)}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">${item.quantity}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">${formatMoney(item.price)}</td>
+                        <td style="padding:6px; border:1px solid #ddd;">${formatMoney(item.subtotal)}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                        </tbody>
+                    </table>
+                    <div class="mt-4 p-3 bg-gray-100 rounded-lg font-bold">الإجمالي الكلي: ${formatMoney(total)}</div>
+                    ${special ? '<div class="mt-2 text-red-600 font-bold">⚠️ هذه طلبية خاصة</div>' : ''}
+                    ${note ? `<div class="mt-2 text-amber-700 bg-amber-50 p-2 rounded"><strong>الملاحظات:</strong> ${escapeHtml(note)}</div>` : ''}
+                </div>
+            `;
+
+            Swal.fire({
+                title: 'معاينة الطلبية',
+                html: html,
+                width: 900,
+                showCancelButton: true,
+                confirmButtonText: 'تأكيد وإرسال الطلبية',
+                cancelButtonText: 'تعديل الطلبية',
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // trigger actual submission
+                    document.getElementById('submit-order-btn').click();
+                }
+            });
+            return true;
         }
 
         function renderSupervisorProducts() {
@@ -726,9 +819,9 @@
                                         <p class="text-xs text-gray-500 mt-1">${escapeHtml(p.unit)}${safeNumber(p.tax) ? ` | ضريبة ${safeNumber(p.tax)}%` : ''}</p>
                                     </div>
                                     <div class="flex items-center space-x-2 space-x-reverse bg-gray-50 rounded-lg p-1 border border-gray-200">
-                                        <button onclick="updateQty('${escapeJs(p.id)}', 1)" class="bg-blue-600 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-blue-700 shadow-sm">+</button>
-                                        <span id="qty-${escapeJs(p.id)}" class="w-8 text-center font-bold text-xl text-gray-800">${safeQty(p.quantity)}</span>
-                                        <button onclick="updateQty('${escapeJs(p.id)}', -1)" class="bg-red-500 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-red-600 shadow-sm">-</button>
+                                        <button onclick="adjustQty('${escapeJs(p.id)}', 1)" class="bg-blue-600 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-blue-700 shadow-sm">+</button>
+                                        <input type="number" id="qty-input-${escapeJs(p.id)}" min="0" step="1" value="${safeQty(p.quantity)}" class="w-16 text-center font-bold text-gray-800 bg-white border border-gray-300 rounded-md p-2" onchange="updateQtyFromInput('${escapeJs(p.id)}', this.value)">
+                                        <button onclick="adjustQty('${escapeJs(p.id)}', -1)" class="bg-red-500 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-red-600 shadow-sm">-</button>
                                     </div>
                                 </div>
                             `).join('')}
@@ -744,6 +837,18 @@
 
             updateSubmitButtonLabel();
         }
+
+        window.updateQtyFromInput = (id, value) => {
+            updateProductQuantity(id, safeQty(value));
+        };
+
+        window.adjustQty = (id, delta) => {
+            const product = state.masterProducts.find(p => p.id === id);
+            if (product) {
+                const newQty = Math.max(0, safeQty(product.quantity) + delta);
+                updateProductQuantity(id, newQty);
+            }
+        };
 
         async function fetchMasterProductsFromFirestore() {
             const snap = await getDocs(collection(db, "products"));
@@ -774,17 +879,6 @@
                 return state.masterProducts;
             }
         }
-
-        window.updateQty = (id, change) => {
-            const product = state.masterProducts.find(p => p.id === id);
-            if (!product) return;
-            product.quantity = Math.max(0, safeQty(product.quantity) + change);
-            const el = getEl(`qty-${id}`);
-            if (el) el.innerText = String(product.quantity);
-            updateSubmitButtonLabel();
-            const row = el?.closest('.flex');
-            renderSupervisorProducts();
-        };
 
         window.filterSupervisorProducts = () => renderSupervisorProducts();
         window.switchAdminTab = (tabId) => setActiveTab(tabId);
@@ -896,10 +990,11 @@
         });
 
         document.getElementById('product-search')?.addEventListener('input', updateSupervisorSearch);
+        document.getElementById('preview-order-btn')?.addEventListener('click', showOrderPreview);
 
         getEl('submit-order-btn').addEventListener('click', async () => {
             const items = state.masterProducts.filter(p => safeQty(p.quantity) > 0).map(normalizeItem);
-            if (!items.length) return Swal.fire('تنبيه', 'قم بتحديد الكميات أولاً بالضغط على زر (+)', 'warning');
+            if (!items.length) return Swal.fire('تنبيه', 'قم بتحديد الكميات أولاً بالضغط على زر (+) أو الإدخال المباشر', 'warning');
 
             const note = getEl('order-note').value.trim();
             const special = getEl('special-order').checked;
@@ -1754,3 +1849,4 @@
     </script>
 
 </body>
+</html>
