@@ -8,28 +8,158 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx-js-style/1.2.0/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+
+        :root{
+            --app-bg: #eef2ff;
+            --app-bg-2: #f8fafc;
+            --card-bg: rgba(255,255,255,.88);
+            --card-border: rgba(148,163,184,.18);
+            --card-shadow: 0 18px 45px rgba(15,23,42,.08);
+            --brand: #2563eb;
+            --brand-2: #0f172a;
+            --success: #16a34a;
+            --danger: #ef4444;
+            --radius-xl: 1.35rem;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(59,130,246,.15), transparent 26%),
+                radial-gradient(circle at bottom left, rgba(16,185,129,.12), transparent 25%),
+                linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-2) 100%);
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+
+        body::before{
+            content:"";
+            position: fixed;
+            inset: 0;
+            pointer-events:none;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,.35), transparent 45%),
+                linear-gradient(315deg, rgba(255,255,255,.2), transparent 30%);
+            z-index:0;
+        }
+
+        body > *:not(.swal2-container) { position: relative; z-index: 1; }
+
         .hidden-view { display: none !important; }
-        
-        /* حركات القوائم المنسدلة */
+
         details > summary { list-style: none; cursor: pointer; }
         details > summary::-webkit-details-marker { display: none; }
-        details[open] summary ~ * { animation: slideDown 0.2s ease-in-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        details[open] summary ~ * { animation: slideDown .18s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* تحسينات الهواتف المحمولة */
         .mobile-touch-target { min-height: 48px; min-width: 48px; }
-        .fast-click:active { transform: scale(0.96); transition: transform 0.1s; }
-        
-        /* تخطيط لوحة الإدارة */
+        .fast-click { transform: translateZ(0); will-change: transform; }
+        .fast-click:active { transform: scale(0.975); transition: transform .08s ease; }
+
         .admin-layout { display: flex; flex-direction: column; min-height: 100vh; }
         @media (min-width: 768px) { .admin-layout { flex-direction: row; } }
-        
-        /* شريط التمرير المخفي للهواتف */
+
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .soft-card{
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(14px);
+            border-radius: var(--radius-xl);
+        }
+
+        .soft-panel{
+            background: rgba(255,255,255,.94);
+            border: 1px solid rgba(226,232,240,.9);
+            box-shadow: 0 10px 30px rgba(15,23,42,.05);
+            border-radius: var(--radius-xl);
+        }
+
+        .sticky-glass{
+            backdrop-filter: blur(16px);
+            background: rgba(255,255,255,.88);
+        }
+
+        .table-wrap{
+            overflow: hidden;
+            border-radius: 1.15rem;
+        }
+
+        table { border-collapse: separate; border-spacing: 0; }
+        thead th { position: sticky; top: 0; z-index: 5; }
+        tbody tr:hover { background: rgba(239,246,255,.7); }
+
+        .action-pill{
+            border-radius: 9999px;
+            box-shadow: 0 6px 18px rgba(15,23,42,.07);
+        }
+
+        .empty-state{
+            color:#64748b;
+            text-align:center;
+            padding:2rem 1rem;
+            font-weight:700;
+        }
+
+
+        .section-surface{
+            background: rgba(255,255,255,.92);
+            border: 1px solid rgba(226,232,240,.85);
+            box-shadow: 0 14px 40px rgba(15,23,42,.06);
+            border-radius: 1.35rem;
+        }
+
+        .floating-toolbar{
+            backdrop-filter: blur(18px);
+            background: rgba(255,255,255,.9);
+        }
+
+        .input-strong:focus{
+            box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+        }
+
+        .swal2-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 99999 !important;
+        }
+
+        .swal2-backdrop {
+            position: absolute !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            pointer-events: auto !important;
+        }
+
+        .swal2-popup {
+            position: relative !important;
+            max-height: 85vh !important;
+        }
+
+        @media (prefers-reduced-motion: reduce){
+            *, *::before, *::after{
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="text-gray-800 relative">
 
@@ -39,8 +169,8 @@
                 <h2 class="text-3xl font-bold text-gray-800 mb-2">نظام الطلبيات الموحد</h2>
                 <p class="text-gray-500">سجل الدخول للوصول إلى لوحة التحكم</p>
             </div>
-            <input type="email" id="email" placeholder="البريد الإلكتروني" class="w-full mb-4 p-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-lg" autocomplete="email">
-            <input type="password" id="password" placeholder="كلمة المرور" class="w-full mb-6 p-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-lg" autocomplete="current-password">
+            <input type="email" id="email" placeholder="البريد الإلكتروني" class="w-full mb-4 p-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong focus:bg-white transition text-lg input-strong" autocomplete="email">
+            <input type="password" id="password" placeholder="كلمة المرور" class="w-full mb-6 p-4 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong focus:bg-white transition text-lg input-strong" autocomplete="current-password">
             <button id="login-btn" class="w-full bg-blue-600 text-white p-4 rounded-xl text-lg font-bold hover:bg-blue-700 transition fast-click shadow-md">تسجيل الدخول</button>
         </div>
     </div>
@@ -57,7 +187,7 @@
 
             <div class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <label class="block text-sm font-bold text-gray-700 mb-2">بحث سريع في الأصناف</label>
-                <input type="text" id="product-search" placeholder="ابحث باسم الصنف أو الوحدة..." class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="product-search" placeholder="ابحث باسم الصنف أو الوحدة..." class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong">
             </div>
             <div id="products-list-supervisor" class="space-y-4">
                 </div>
@@ -65,7 +195,7 @@
             <div class="mt-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-4">
                 <div>
                     <label for="order-note" class="block text-sm font-bold text-gray-700 mb-2">الطلبات الجانبية / ملاحظات التحضير</label>
-                    <textarea id="order-note" rows="3" maxlength="500" placeholder="اكتب أي ملاحظات جانبية أو تعديلات مطلوبة على الطلبية..." class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"></textarea>
+                    <textarea id="order-note" rows="3" maxlength="500" placeholder="اكتب أي ملاحظات جانبية أو تعديلات مطلوبة على الطلبية..." class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong focus:bg-white transition"></textarea>
                 </div>
                 <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer select-none">
                     <input type="checkbox" id="special-order" class="w-5 h-5 accent-blue-600">
@@ -125,15 +255,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">من تاريخ</label>
-                            <input type="date" id="today-filter-from" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="date" id="today-filter-from" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">إلى تاريخ</label>
-                            <input type="date" id="today-filter-to" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="date" id="today-filter-to" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">الفرع</label>
-                            <select id="today-filter-branch" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                            <select id="today-filter-branch" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong"></select>
                         </div>
                         <button onclick="applyOrderFilters('today')" class="self-end bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-sm">تطبيق الفلتر</button>
                         <button onclick="resetOrderFilters('today')" class="self-end bg-gray-100 text-gray-800 px-4 py-3 rounded-xl font-bold hover:bg-gray-200 transition shadow-sm">إلغاء الفلتر</button>
@@ -167,15 +297,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">من تاريخ</label>
-                            <input type="date" id="archive-filter-from" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="date" id="archive-filter-from" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">إلى تاريخ</label>
-                            <input type="date" id="archive-filter-to" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="date" id="archive-filter-to" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 mb-1">الفرع</label>
-                            <select id="archive-filter-branch" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                            <select id="archive-filter-branch" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 input-strong"></select>
                         </div>
                         <button onclick="applyOrderFilters('archive')" class="self-end bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-sm">تطبيق الفلتر</button>
                         <button onclick="resetOrderFilters('archive')" class="self-end bg-gray-100 text-gray-800 px-4 py-3 rounded-xl font-bold hover:bg-gray-200 transition shadow-sm">إلغاء الفلتر</button>
@@ -262,11 +392,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">الفرع</label>
-                        <select id="preparer-filter-branch" onchange="applyOrderFilters('preparer')" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
+                        <select id="preparer-filter-branch" onchange="applyOrderFilters('preparer')" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 input-strong"></select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 mb-1">الحالة</label>
-                        <select id="preparer-filter-status" onchange="applyOrderFilters('preparer')" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <select id="preparer-filter-status" onchange="applyOrderFilters('preparer')" class="w-full p-3 border rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 input-strong">
                             <option value="">كل الحالات</option>
                             <option value="submitted">جديد</option>
                             <option value="processing">قيد التحضير</option>
@@ -367,6 +497,14 @@
         function safeQty(value) {
             const n = Math.floor(safeNumber(value, 0));
             return Number.isFinite(n) && n > 0 ? n : 0;
+        }
+
+        function debounce(fn, wait = 180) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), wait);
+            };
         }
 
         function normalizeKey(value) {
@@ -621,21 +759,20 @@
             const tbody = getEl(tbodyId);
             if (!tbody) return;
             const ordersArray = getFilteredOrders(source);
-            tbody.innerHTML = '';
 
             if (!ordersArray.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 font-bold text-lg">لا يوجد بيانات مطابقة للفلتر</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state">لا يوجد بيانات مطابقة للفلتر</td></tr>`;
                 return;
             }
 
-            ordersArray.forEach(order => {
+            tbody.innerHTML = ordersArray.map(order => {
                 const dateStr = formatDateTime(order.preparedAt || order.timestamp);
                 const noteBadge = order.note ? `<div class="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-1 inline-block mt-1" title="${escapeHtml(order.note)}">ملاحظة موجودة</div>` : '';
                 const specialBadge = order.special ? `<div class="text-xs text-red-700 bg-red-50 border border-red-100 rounded-full px-2 py-1 inline-block mt-1">خاصة</div>` : '';
                 const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(buildWhatsAppText(order, source === 'preparer' ? 'preparer' : 'supervisor'))}`;
                 const itemCount = getFinalOrderItems(order).length;
 
-                tbody.insertAdjacentHTML('beforeend', `
+                return `
                     <tr class="hover:bg-blue-50 transition border-b border-gray-100">
                         <td class="px-4 py-4 text-right font-bold text-gray-800">
                             <div>${escapeHtml(order.branch)}</div>
@@ -658,9 +795,17 @@
                             </div>
                         </td>
                     </tr>
-                `);
-            });
+                `;
+            }).join('');
         }
+        function scheduleOrdersRender() {
+    renderOrdersTable('today-orders-tbody', 'today');
+    renderOrdersTable('archive-orders-tbody', 'archive');
+
+    if (typeof renderPreparerOrdersTable === 'function') {
+        renderPreparerOrdersTable();
+    }
+}
 
         function canEditOrders() {
             return state.currentRole === 'admin' || state.currentRole === 'preparer' || state.currentRole === 'receiver';
@@ -688,91 +833,104 @@
         }
 
         function updateProductQuantity(productId, newQty) {
-            const product = state.masterProducts.find(p => p.id === productId);
+            const product = state.masterProductsById.get(productId) || state.masterProducts.find(p => p.id === productId);
             if (!product) return;
+
             const qty = safeQty(newQty);
             product.quantity = qty;
+
             const inputEl = getEl(`qty-input-${productId}`);
-            if (inputEl && inputEl.value != qty) inputEl.value = qty;
+            if (inputEl && Number(inputEl.value) !== qty) inputEl.value = String(qty);
+
             updateSubmitButtonLabel();
-            // only re-render if needed for grouping, but keep performance
-            const activeSearch = getEl('product-search')?.value;
-            if (activeSearch && activeSearch.trim() !== '') {
+
+            const activeSearch = safeText(getEl('product-search')?.value, '').trim();
+            if (activeSearch) {
                 renderSupervisorProducts();
-            } else {
-                // update just the displayed quantity in the DOM without full re-render
-                const displaySpan = getEl(`qty-display-${productId}`);
-                if (displaySpan) displaySpan.innerText = qty;
             }
         }
 
-        // New function to show order preview
         function showOrderPreview() {
-            const itemsWithQty = state.masterProducts.filter(p => safeQty(p.quantity) > 0).map(p => ({
-                name: p.name,
-                unit: p.unit,
-                quantity: safeQty(p.quantity),
-                price: p.price,
-                tax: p.tax,
-                subtotal: safeQty(p.quantity) * p.price * (1 + p.tax / 100)
-            }));
+            const itemsWithQty = state.masterProducts
+                .filter(p => safeQty(p.quantity) > 0)
+                .map(p => ({
+                    name: p.name,
+                    unit: p.unit,
+                    quantity: safeQty(p.quantity),
+                    price: p.price,
+                    tax: p.tax,
+                    subtotal: safeQty(p.quantity) * p.price * (1 + p.tax / 100)
+                }));
+
             if (itemsWithQty.length === 0) {
                 Swal.fire('تنبيه', 'لا توجد أصناف محددة في الطلبية. قم بإضافة كميات أولاً.', 'info');
                 return false;
             }
-            const total = itemsWithQty.reduce((sum, i) => sum + i.subtotal, 0);
-            const note = getEl('order-note').value.trim();
-            const special = getEl('special-order').checked;
 
-            let html = `
-                <div style="text-align: right; max-height: 60vh; overflow-y: auto;">
-                    <table style="width:100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background:#f3f4f6;">
-                                <th style="padding:8px; border:1px solid #ddd;">الصنف</th>
-                                <th style="padding:8px; border:1px solid #ddd;">الوحدة</th>
-                                <th style="padding:8px; border:1px solid #ddd;">الكمية</th>
-                                <th style="padding:8px; border:1px solid #ddd;">السعر</th>
-                                <th style="padding:8px; border:1px solid #ddd;">الإجمالي</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-            itemsWithQty.forEach(item => {
-                html += `
-                    <tr>
-                        <td style="padding:6px; border:1px solid #ddd;">${escapeHtml(item.name)}</td>
-                        <td style="padding:6px; border:1px solid #ddd;">${escapeHtml(item.unit)}</td>
-                        <td style="padding:6px; border:1px solid #ddd;">${item.quantity}</td>
-                        <td style="padding:6px; border:1px solid #ddd;">${formatMoney(item.price)}</td>
-                        <td style="padding:6px; border:1px solid #ddd;">${formatMoney(item.subtotal)}</td>
-                    </tr>
-                `;
-            });
-            html += `
-                        </tbody>
-                    </table>
-                    <div class="mt-4 p-3 bg-gray-100 rounded-lg font-bold">الإجمالي الكلي: ${formatMoney(total)}</div>
-                    ${special ? '<div class="mt-2 text-red-600 font-bold">⚠️ هذه طلبية خاصة</div>' : ''}
-                    ${note ? `<div class="mt-2 text-amber-700 bg-amber-50 p-2 rounded"><strong>الملاحظات:</strong> ${escapeHtml(note)}</div>` : ''}
+            const total = itemsWithQty.reduce((sum, i) => sum + i.subtotal, 0);
+            const note = safeText(getEl('order-note')?.value, '').trim();
+            const special = Boolean(getEl('special-order')?.checked);
+
+            const rows = itemsWithQty.map(item => `
+                <tr>
+                    <td class="p-3 border-b border-slate-200 font-bold text-slate-800">${escapeHtml(item.name)}</td>
+                    <td class="p-3 border-b border-slate-200 text-slate-600">${escapeHtml(item.unit)}</td>
+                    <td class="p-3 border-b border-slate-200 font-bold text-slate-800">${item.quantity}</td>
+                    <td class="p-3 border-b border-slate-200" dir="ltr">${formatMoney(item.price)}</td>
+                    <td class="p-3 border-b border-slate-200 font-bold text-emerald-600" dir="ltr">${formatMoney(item.subtotal)}</td>
+                </tr>
+            `).join('');
+
+            const html = `
+                <div class="text-right max-h-[65vh] overflow-y-auto pr-1">
+                    <div class="soft-panel p-3 mb-4">
+                        <div class="font-bold text-slate-800 mb-1">مراجعة نهائية قبل الإرسال</div>
+                        <div class="text-sm text-slate-500">يمكنك التأكد من الأصناف والكميات ثم إرسال الطلبية مباشرة.</div>
+                    </div>
+                    <div class="overflow-hidden rounded-2xl border border-slate-200">
+                        <table class="w-full text-right bg-white">
+                            <thead class="bg-slate-100 text-slate-700">
+                                <tr>
+                                    <th class="p-3">الصنف</th>
+                                    <th class="p-3">الوحدة</th>
+                                    <th class="p-3">الكمية</th>
+                                    <th class="p-3">السعر</th>
+                                    <th class="p-3">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                        <div class="soft-panel p-4">
+                            <div class="text-sm text-slate-500">الإجمالي الكلي</div>
+                            <div class="text-2xl font-extrabold text-emerald-600" dir="ltr">${formatMoney(total)}</div>
+                        </div>
+                        <div class="soft-panel p-4">
+                            <div class="text-sm text-slate-500">الحالة</div>
+                            <div class="text-lg font-bold ${special ? 'text-red-600' : 'text-slate-800'}">${special ? 'طلبية خاصة' : 'طلبية عادية'}</div>
+                        </div>
+                    </div>
+                    ${note ? `<div class="soft-panel p-4 mt-4 bg-amber-50 border-amber-100"><div class="text-sm text-amber-700 font-bold mb-1">الملاحظات</div><div class="text-slate-800 whitespace-pre-wrap">${escapeHtml(note)}</div></div>` : ''}
                 </div>
             `;
 
             Swal.fire({
                 title: 'معاينة الطلبية',
-                html: html,
-                width: 900,
+                html,
+                width: 920,
+                allowOutsideClick: true,
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد وإرسال الطلبية',
                 cancelButtonText: 'تعديل الطلبية',
                 confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#6b7280'
+                cancelButtonColor: '#64748b'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // trigger actual submission
                     document.getElementById('submit-order-btn').click();
                 }
             });
+
             return true;
         }
 
@@ -781,60 +939,69 @@
             if (!container) return;
 
             const search = normalizeKey(getEl('product-search')?.value || '');
-            const products = state.masterProducts.filter(p => {
+            const filtered = state.masterProducts.filter(p => {
                 if (!search) return true;
                 const hay = normalizeKey(`${p.name} ${p.unit} ${p.category}`);
                 return hay.includes(search);
             });
 
-            container.innerHTML = '';
+            container.replaceChildren();
 
-            if (!products.length) {
-                container.innerHTML = '<div class="text-center p-8 text-gray-500 font-bold">لا توجد أصناف مطابقة للبحث.</div>';
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty-state soft-panel">لا توجد أصناف مطابقة للبحث.</div>';
+                updateSubmitButtonLabel();
                 return;
             }
 
-            const groups = {};
-            products.forEach(p => {
+            const groups = new Map();
+            for (const p of filtered) {
                 const key = safeText(p.category || p.unit, 'أصناف عامة');
-                groups[key] = groups[key] || [];
-                groups[key].push(p);
-            });
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(p);
+            }
 
-            Object.entries(groups)
+            const fragment = document.createDocumentFragment();
+            [...groups.entries()]
                 .sort((a, b) => a[0].localeCompare(b[0], 'ar'))
                 .forEach(([groupName, groupProducts]) => {
                     const details = document.createElement('details');
-                    details.className = "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-3";
+                    details.className = 'soft-card overflow-hidden mb-3';
                     details.open = Boolean(state.supervisorExpandedGroups[groupName]);
-                    details.innerHTML = `
-                        <summary class="p-4 font-bold text-lg bg-gray-50 text-gray-800 flex justify-between items-center select-none mobile-touch-target">
-                            ${escapeHtml(groupName)} <span class="text-sm font-normal bg-white px-3 py-1 rounded-full text-blue-700 shadow-sm border border-blue-100">${groupProducts.length}</span>
-                        </summary>
-                        <div class="p-3 space-y-3 border-t bg-white">
-                            ${groupProducts.map(p => `
-                                <div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm gap-3 ${safeQty(p.quantity) > 0 ? 'ring-1 ring-green-100 bg-green-50/30' : ''}">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="font-bold text-base text-gray-800 truncate">${escapeHtml(p.name)}</p>
-                                        <p class="text-xs text-gray-500 mt-1">${escapeHtml(p.unit)}${safeNumber(p.tax) ? ` | ضريبة ${safeNumber(p.tax)}%` : ''}</p>
-                                    </div>
-                                    <div class="flex items-center space-x-2 space-x-reverse bg-gray-50 rounded-lg p-1 border border-gray-200">
-                                        <button onclick="adjustQty('${escapeJs(p.id)}', 1)" class="bg-blue-600 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-blue-700 shadow-sm">+</button>
-                                        <input type="number" id="qty-input-${escapeJs(p.id)}" min="0" step="1" value="${safeQty(p.quantity)}" class="w-16 text-center font-bold text-gray-800 bg-white border border-gray-300 rounded-md p-2" onchange="updateQtyFromInput('${escapeJs(p.id)}', this.value)">
-                                        <button onclick="adjustQty('${escapeJs(p.id)}', -1)" class="bg-red-500 text-white w-12 h-10 rounded-md font-bold text-2xl fast-click hover:bg-red-600 shadow-sm">-</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+
+                    const summary = document.createElement('summary');
+                    summary.className = 'p-4 font-bold text-lg bg-white/80 text-slate-800 flex justify-between items-center select-none mobile-touch-target border-b border-slate-100';
+                    summary.innerHTML = `
+                        <span>${escapeHtml(groupName)}</span>
+                        <span class="text-sm font-bold bg-blue-50 px-3 py-1 rounded-full text-blue-700 border border-blue-100">${groupProducts.length}</span>
                     `;
-                    details.querySelector('summary').addEventListener('click', (event) => {
+
+                    const body = document.createElement('div');
+                    body.className = 'p-3 space-y-3 bg-white/60';
+                    body.innerHTML = groupProducts.map(p => `
+                        <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm gap-3 ${safeQty(p.quantity) > 0 ? 'ring-2 ring-emerald-100 bg-emerald-50/40' : ''}">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-base text-slate-800 truncate">${escapeHtml(p.name)}</p>
+                                <p class="text-xs text-slate-500 mt-1">${escapeHtml(p.unit)}${safeNumber(p.tax) ? ` | ضريبة ${safeNumber(p.tax)}%` : ''}</p>
+                            </div>
+                            <div class="flex items-center gap-2 bg-slate-50 rounded-2xl p-1 border border-slate-200">
+                                <button onclick="adjustQty('${escapeJs(p.id)}', 1)" class="bg-blue-600 text-white w-11 h-10 rounded-xl font-bold text-2xl fast-click hover:bg-blue-700 shadow-sm">+</button>
+                                <input type="number" id="qty-input-${escapeJs(p.id)}" min="0" step="1" inputmode="numeric" value="${safeQty(p.quantity)}" class="w-16 text-center font-bold text-slate-800 bg-white border border-slate-300 rounded-xl p-2" onchange="updateQtyFromInput('${escapeJs(p.id)}', this.value)">
+                                <button onclick="adjustQty('${escapeJs(p.id)}', -1)" class="bg-red-500 text-white w-11 h-10 rounded-xl font-bold text-2xl fast-click hover:bg-red-600 shadow-sm">-</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    details.append(summary, body);
+                    summary.addEventListener('click', (event) => {
                         event.preventDefault();
                         state.supervisorExpandedGroups[groupName] = !state.supervisorExpandedGroups[groupName];
                         details.open = state.supervisorExpandedGroups[groupName];
                     });
-                    container.appendChild(details);
+
+                    fragment.appendChild(details);
                 });
 
+            container.appendChild(fragment);
             updateSubmitButtonLabel();
         }
 
@@ -989,7 +1156,7 @@
             }
         });
 
-        document.getElementById('product-search')?.addEventListener('input', updateSupervisorSearch);
+        document.getElementById('product-search')?.addEventListener('input', debounce(updateSupervisorSearch, 120));
         document.getElementById('preview-order-btn')?.addEventListener('click', showOrderPreview);
 
         getEl('submit-order-btn').addEventListener('click', async () => {
@@ -1035,6 +1202,7 @@
                     title: 'تم إرسال الطلبية بنجاح',
                     text: 'جاري فتح الواتساب...',
                     timer: 1800,
+                    allowOutsideClick: true,
                     showConfirmButton: false
                 }).then(() => {
                     const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappText)}`;
@@ -1053,43 +1221,42 @@
         async function loadAdminProducts() {
             try {
                 const snap = await getDocs(collection(db, "products"));
-                state.adminProducts = [];
                 const tbody = getEl('admin-products-tbody');
                 if (!tbody) return;
-                tbody.innerHTML = '';
 
                 const rows = [];
                 snap.forEach((d, idx) => {
-                    const p = normalizeProduct({ id: d.id, ...d.data() }, idx);
-                    rows.push(p);
+                    rows.push(normalizeProduct({ id: d.id, ...d.data() }, idx));
                 });
 
                 rows.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'ar'));
                 state.adminProducts = rows;
 
                 if (!rows.length) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 font-bold">لا توجد منتجات حالياً</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">لا توجد منتجات حالياً</td></tr>`;
                     return;
                 }
 
-                rows.forEach(p => {
-                    tbody.insertAdjacentHTML('beforeend', `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
-                            <td class="px-4 py-3 font-bold text-gray-800">${escapeHtml(p.name)}</td>
-                            <td class="px-4 py-3 text-gray-600">${escapeHtml(p.unit)}</td>
-                            <td class="px-4 py-3 text-gray-600">${escapeHtml(p.category)}</td>
-                            <td class="px-4 py-3 text-blue-600 font-bold" dir="ltr">${formatMoney(p.price)}</td>
-                            <td class="px-4 py-3 text-gray-600" dir="ltr">${safeNumber(p.tax)}%</td>
-                            <td class="px-4 py-3 text-gray-600" dir="ltr">${safeNumber(p.sortOrder)}</td>
-                            <td class="px-4 py-3 text-center">
-                                <button onclick="editProduct('${escapeJs(p.id)}')" class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition">تعديل</button>
-                                <button onclick="deleteProduct('${escapeJs(p.id)}')" class="text-white bg-red-500 hover:bg-red-600 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition mr-1">حذف</button>
-                            </td>
-                        </tr>
-                    `);
-                });
+                tbody.innerHTML = rows.map(p => `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                        <td class="px-4 py-3 font-bold text-gray-800">${escapeHtml(p.name)}</td>
+                        <td class="px-4 py-3 text-gray-600">${escapeHtml(p.unit)}</td>
+                        <td class="px-4 py-3 text-gray-600">${escapeHtml(p.category)}</td>
+                        <td class="px-4 py-3 text-blue-600 font-bold" dir="ltr">${formatMoney(p.price)}</td>
+                        <td class="px-4 py-3 text-gray-600" dir="ltr">${safeNumber(p.tax)}%</td>
+                        <td class="px-4 py-3 text-gray-600" dir="ltr">${safeNumber(p.sortOrder)}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex justify-center gap-2 flex-wrap">
+                                <button onclick="editProduct('${escapeJs(p.id)}')" class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">تعديل</button>
+                                <button onclick="deleteProduct('${escapeJs(p.id)}')" class="text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">حذف</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
             } catch (error) {
                 console.error(error);
+                Swal.fire('خطأ', 'تعذر تحميل المنتجات', 'error');
             }
         }
 
@@ -1120,10 +1287,7 @@
                 state.orders.today = tempOrders.filter(order => extractOrderYMD(order) === todayDate);
                 state.orders.archive = tempOrders.filter(order => extractOrderYMD(order) !== todayDate);
 
-                populateBranchFilterSelects();
-                renderOrdersTable('today-orders-tbody', 'today');
-                renderOrdersTable('archive-orders-tbody', 'archive');
-                renderPreparerOrdersTable();
+                scheduleOrdersRender();
             }, (error) => {
                 console.error('Realtime fetching error:', error);
                 Swal.fire('خطأ', 'تعذر تحميل الطلبات من قاعدة البيانات', 'error');
@@ -1145,17 +1309,16 @@
             const tbody = getEl('preparer-orders-tbody');
             if (!tbody) return;
             const ordersArray = getFilteredOrders('preparer');
-            tbody.innerHTML = '';
 
             if (!ordersArray.length) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 font-bold text-lg">لا يوجد طلبات للتحضير حالياً</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-state">لا يوجد طلبات للتحضير حالياً</td></tr>`;
                 return;
             }
 
-            ordersArray.forEach(order => {
+            tbody.innerHTML = ordersArray.map(order => {
                 const dateStr = formatDateTime(order.preparedAt || order.timestamp);
                 const items = getFinalOrderItems(order);
-                tbody.insertAdjacentHTML('beforeend', `
+                return `
                     <tr class="hover:bg-emerald-50 transition border-b border-gray-100">
                         <td class="px-4 py-4 text-right font-bold text-gray-800 align-top break-words">
                             <div class="whitespace-normal">${escapeHtml(order.branch)}</div>
@@ -1171,8 +1334,8 @@
                             </div>
                         </td>
                     </tr>
-                `);
-            });
+                `;
+            }).join('');
         }
 
         window.applyOrderFilters = (source) => {
@@ -1223,6 +1386,7 @@
                 title: 'اختر الفرع لإنشاء تقريره الخاص',
                 input: 'select',
                 inputOptions: branches.reduce((acc, b) => ({ ...acc, [b]: b }), {}),
+                allowOutsideClick: true,
                 showCancelButton: true,
                 confirmButtonText: 'تحميل تقرير الفرع',
                 cancelButtonText: 'إلغاء'
@@ -1252,15 +1416,12 @@
             ];
             const details = [];
 
-            const productLookup = getProductLookupMap();
-
             ordersArray.forEach((order, idx) => {
                 const normalized = normalizeOrder(order);
                 const orderLabel = `#${idx + 1}`;
                 const orderDate = formatDateTime(normalized.preparedAt || normalized.timestamp);
                 const orderType = normalized.special ? 'خاصة' : 'عادية';
                 const finalItems = getFinalOrderItems(normalized);
-                const quantityMap = new Map(finalItems.map(item => [normalizeKey(item.name), item]));
 
                 summary.push([orderLabel, normalized.branch, orderDate, orderType, finalItems.length, normalized.note || '', normalized.total]);
                 summary.push(['', '', '', '', '', '', '']);
@@ -1268,19 +1429,15 @@
                 details.push([`تفاصيل الطلبية ${orderLabel} - الفرع: ${normalized.branch}`]);
                 details.push([`التاريخ: ${orderDate} | الحالة: ${getStatusLabel(normalized.status)} | رقم الطلب: ${normalized.orderNo || normalized.id || ''}`]);
                 details.push(['الصنف', 'الوحدة', 'السعر الافرادي', 'الكمية', 'المجموع']);
-                details.push(['', '', 'دينار', '', '']);
 
-                state.masterProducts.forEach(master => {
-                    const matched = quantityMap.get(normalizeKey(master.name));
-                    const qty = safeQty(matched?.quantity || 0);
-                    const item = {
-                        name: master.name,
-                        unit: master.unit,
-                        price: safeNumber(master.price),
-                        quantity: qty,
-                        subtotal: qty * safeNumber(master.price) * (1 + safeNumber(master.tax) / 100)
-                    };
-                    details.push([item.name, item.unit, item.price, item.quantity, item.subtotal]);
+                finalItems.forEach(item => {
+                    details.push([
+                        item.name,
+                        item.unit,
+                        safeNumber(item.price),
+                        safeQty(item.quantity),
+                        safeQty(item.quantity) * safeNumber(item.price) * (1 + safeNumber(item.tax) / 100)
+                    ]);
                 });
 
                 details.push(['', '', '', '', '']);
@@ -1314,7 +1471,67 @@
 
         function applyBasicSheetFormatting(ws, widths) {
             ws['!cols'] = widths;
-            ws['!autofilter'] = { ref: ws['!ref'] };
+            if (ws['!ref']) ws['!autofilter'] = { ref: ws['!ref'] };
+        }
+
+
+        function ensureSheetRange(ws) {
+            if (!ws || !ws['!ref']) return;
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            Object.keys(ws).forEach((address) => {
+                if (address.startsWith('!')) return;
+                const cell = XLSX.utils.decode_cell(address);
+                if (cell.r < range.s.r) range.s.r = cell.r;
+                if (cell.c < range.s.c) range.s.c = cell.c;
+                if (cell.r > range.e.r) range.e.r = cell.r;
+                if (cell.c > range.e.c) range.e.c = cell.c;
+            });
+            ws['!ref'] = XLSX.utils.encode_range(range);
+        }
+
+        function safeWorkbookFilename(fileName) {
+            return `${safeText(fileName, 'تقرير_الطلبيات')
+                .replace(/[\\/:*?"<>|]+/g, '_')
+                .replace(/\s+/g, '_')
+                .trim() || 'تقرير_الطلبيات'}.xlsx`;
+        }
+
+        function safeWriteWorkbook(workbook, fileName) {
+            if (!window.XLSX || !XLSX.utils) {
+                throw new Error('مكتبة Excel غير متاحة في المتصفح');
+            }
+
+            const outputName = safeWorkbookFilename(fileName);
+
+            try {
+                if (typeof XLSX.writeFile === 'function') {
+                    XLSX.writeFile(workbook, outputName);
+                    return;
+                }
+            } catch (error) {
+                console.warn('XLSX.writeFile failed, trying fallback download:', error);
+            }
+
+            const arrayBuffer = XLSX.write(workbook, {
+                bookType: 'xlsx',
+                type: 'array',
+                cellStyles: true
+            });
+
+            const blob = new Blob([arrayBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = outputName;
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function generateExcel(ordersArray, fileName) {
@@ -1335,32 +1552,12 @@
                 { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 30 }, { wch: 16 }
             ]);
             applyBasicSheetFormatting(wsDetails, [
-                { wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 10 }, { wch: 14 }
+                { wch: 34 }, { wch: 18 }, { wch: 12 }, { wch: 10 }, { wch: 14 }
             ]);
 
             setSheetHeaderStyle(wsSummary, 1, 1, 7, '1D4ED8');
             setSheetHeaderStyle(wsSummary, 4, 1, 7, 'E5E7EB', '111827');
-            if (ordersArray.length) {
-                let rowIndex = 5;
-                ordersArray.forEach((order, idx) => {
-                    const normalized = normalizeOrder(order);
-                    const finalItems = getFinalOrderItems(normalized);
-                    const itemCount = finalItems.length;
 
-                    const summaryRow = rowIndex;
-                    const detailTitleRow = details.findIndex((row, i) => Array.isArray(row) && row[0] === `تفاصيل الطلبية #${idx + 1} - الفرع: ${normalized.branch}`) + 1;
-                    const detailMetaRow = detailTitleRow + 1;
-                    const detailHeaderRow = detailTitleRow + 2;
-                    const detailCurrencyRow = detailTitleRow + 3;
-
-                    if (wsSummary[`A${summaryRow}`]) {
-                        wsSummary[`A${summaryRow}`].s = { font: { bold: true }, alignment: { horizontal: 'center' } };
-                    }
-                    rowIndex += 2;
-                });
-            }
-
-            // Style summary rows
             for (let r = 1; r <= summary.length; r++) {
                 for (let c = 1; c <= 7; c++) {
                     const addr = XLSX.utils.encode_cell({ r: r - 1, c: c - 1 });
@@ -1390,19 +1587,11 @@
                 }
             }
 
-            // Style detailed sheet
-            let currentOrderIndex = -1;
-            for (let r = 1; r <= wsDetails['!ref'].match(/\d+$/)?.[0]; r++) {
-                // noop placeholder
-            }
-
             let row = 1;
             ordersArray.forEach((order) => {
                 const normalized = normalizeOrder(order);
                 const finalItems = getFinalOrderItems(normalized);
-                const productMap = new Map(finalItems.map(item => [normalizeKey(item.name), item]));
 
-                // Title row
                 for (let c = 1; c <= 5; c++) {
                     const addr = XLSX.utils.encode_cell({ r: row - 1, c: c - 1 });
                     if (wsDetails[addr]) {
@@ -1413,17 +1602,16 @@
                         };
                     }
                 }
+
                 wsDetails[`A${row}`] = wsDetails[`A${row}`] || { v: `تفاصيل الطلبية - الفرع: ${normalized.branch}`, t: 's' };
                 wsDetails[`A${row}`].s = {
                     fill: { patternType: 'solid', fgColor: { rgb: '0F172A' } },
                     font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 13 },
                     alignment: { horizontal: 'center', vertical: 'center', wrapText: true }
                 };
-                if (!wsDetails['!merges']) wsDetails['!merges'] = [];
                 wsDetails['!merges'].push({ s: { r: row - 1, c: 0 }, e: { r: row - 1, c: 4 } });
                 row += 1;
 
-                // Meta row
                 const meta = `التاريخ: ${formatDateTime(normalized.preparedAt || normalized.timestamp)} | الحالة: ${getStatusLabel(normalized.status)} | رقم الطلب: ${normalized.orderNo || normalized.id || ''}`;
                 wsDetails[`A${row}`] = { v: meta, t: 's' };
                 wsDetails[`A${row}`].s = {
@@ -1434,7 +1622,6 @@
                 wsDetails['!merges'].push({ s: { r: row - 1, c: 0 }, e: { r: row - 1, c: 4 } });
                 row += 1;
 
-                // Headers row
                 const headers = ['الصنف', 'الوحدة', 'السعر الافرادي', 'الكمية', 'المجموع'];
                 headers.forEach((h, i) => {
                     const addr = XLSX.utils.encode_cell({ r: row - 1, c: i });
@@ -1453,31 +1640,18 @@
                 });
                 row += 1;
 
-                // Currency row like the template
-                wsDetails[`C${row}`] = { v: 'دينار', t: 's' };
-                wsDetails[`C${row}`].s = {
-                    fill: { patternType: 'solid', fgColor: { rgb: 'F3F4F6' } },
-                    font: { bold: true, color: { rgb: '374151' } },
-                    alignment: { horizontal: 'center', vertical: 'center' }
-                };
-                row += 1;
-
-                state.masterProducts.forEach(master => {
-                    const matched = productMap.get(normalizeKey(master.name));
-                    const qty = safeQty(matched?.quantity || 0);
-                    const subtotal = qty * safeNumber(master.price) * (1 + safeNumber(master.tax) / 100);
-                    const values = [master.name, master.unit, safeNumber(master.price), qty, subtotal];
-
+                finalItems.forEach(item => {
+                    const values = [item.name, item.unit, safeNumber(item.price), safeQty(item.quantity), safeQty(item.quantity) * safeNumber(item.price) * (1 + safeNumber(item.tax) / 100)];
                     values.forEach((value, i) => {
                         const addr = XLSX.utils.encode_cell({ r: row - 1, c: i });
                         wsDetails[addr] = wsDetails[addr] || { v: value };
                         wsDetails[addr].v = value;
                         wsDetails[addr].t = i < 2 ? 's' : 'n';
                         wsDetails[addr].s = {
-                            fill: { patternType: 'solid', fgColor: { rgb: qty > 0 ? 'ECFDF5' : 'F9FAFB' } },
+                            fill: { patternType: 'solid', fgColor: { rgb: safeQty(item.quantity) > 0 ? 'ECFDF5' : 'F9FAFB' } },
                             font: {
-                                bold: qty > 0 && i === 0,
-                                color: { rgb: qty > 0 ? '065F46' : '6B7280' }
+                                bold: safeQty(item.quantity) > 0 && i === 0,
+                                color: { rgb: safeQty(item.quantity) > 0 ? '065F46' : '6B7280' }
                             },
                             alignment: { horizontal: i === 0 ? 'right' : 'center', vertical: 'center', wrapText: true },
                             border: {
@@ -1495,13 +1669,11 @@
                 row += 2;
             });
 
-            // Set row heights, if supported
-            wsSummary['!rows'] = wsSummary['!rows'] || [];
-            wsDetails['!rows'] = wsDetails['!rows'] || [];
-
+            ensureSheetRange(wsSummary);
+            ensureSheetRange(wsDetails);
             XLSX.utils.book_append_sheet(workbook, wsSummary, "الملخص");
             XLSX.utils.book_append_sheet(workbook, wsDetails, "التفاصيل المحاسبية");
-            XLSX.writeFile(workbook, `${fileName.replace(/\s+/g, '_')}.xlsx`);
+            safeWriteWorkbook(workbook, fileName);
         }
 
         window.viewOrderDetails = (orderId, source) => {
@@ -1546,6 +1718,7 @@
             Swal.fire({
                 title: `طلبية فرع: ${escapeHtml(normalized.branch)}`,
                 html: itemsHtml,
+                allowOutsideClick: true,
                 showCancelButton: true,
                 confirmButtonText: 'تنزيل الإكسل',
                 cancelButtonText: canEditOrders() ? 'تعديل الطلبية' : 'إغلاق',
@@ -1651,6 +1824,7 @@
                     </div>
                 `,
                 width: 950,
+                allowOutsideClick: true,
                 showCancelButton: true,
                 confirmButtonText: 'حفظ التعديل',
                 cancelButtonText: 'إغلاق',
@@ -1712,10 +1886,8 @@
             }
         };
 
-        let adminProductsArray = [];
-
         window.editProduct = async (id) => {
-            const p = adminProductsArray.find(x => x.id === id);
+            const p = state.adminProducts.find(x => x.id === id);
             if (!p) return Swal.fire('تنبيه', 'المنتج غير موجود', 'info');
 
             const { value: formValues } = await Swal.fire({
@@ -1751,6 +1923,7 @@
                     </div>
                 `,
                 focusConfirm: false,
+                allowOutsideClick: true,
                 showCancelButton: true,
                 confirmButtonText: 'حفظ التعديل',
                 cancelButtonText: 'إلغاء',
@@ -1774,11 +1947,21 @@
         };
 
         window.deleteProduct = async (id) => {
-            if (confirm('هل أنت متأكد تماماً من حذف هذا المنتج؟')) {
-                await deleteDoc(doc(db, "products", id));
-                loadAdminProducts();
-                loadMasterProducts();
-            }
+            const confirmed = await Swal.fire({
+                title: 'هل تريد حذف هذا المنتج؟',
+                text: 'سيتم حذف المنتج من قاعدة البيانات نهائياً.',
+                icon: 'warning',
+                allowOutsideClick: true,
+                showCancelButton: true,
+                confirmButtonText: 'نعم، حذف',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#ef4444'
+            });
+            if (!confirmed.isConfirmed) return;
+            await deleteDoc(doc(db, "products", id));
+            Swal.fire('تم الحذف', 'تم حذف المنتج بنجاح', 'success');
+            loadAdminProducts();
+            loadMasterProducts();
         };
 
         document.getElementById('import-btn').addEventListener('click', () => {
@@ -1818,6 +2001,7 @@
                         title: 'استبدال قائمة المنتجات الحالية؟',
                         text: 'سيتم حذف المنتجات الحالية من قاعدة البيانات ثم رفع القائمة الجديدة من ملف الإكسل.',
                         icon: 'warning',
+                        allowOutsideClick: true,
                         showCancelButton: true,
                         confirmButtonText: 'نعم، استبدال',
                         cancelButtonText: 'إلغاء'
